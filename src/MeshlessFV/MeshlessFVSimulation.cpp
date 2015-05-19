@@ -133,30 +133,30 @@ void MeshlessFVSimulation<ndim>::ProcessParameters(void)
       mfv = new MfvMuscl<ndim, TabulatedKernel>
         (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
          floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-         floatparams["gamma_eos"], stringparams["gas_eos"],
-         KernelName, sizeof(MeshlessFVParticle<ndim>));
+         floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+         sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
     }
     else if (intparams["tabulated_kernel"] == 0) {
       if (KernelName == "m4") {
         mfv = new MfvMuscl<ndim, M4Kernel>
           (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
            floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-           floatparams["gamma_eos"], stringparams["gas_eos"],
-           KernelName, sizeof(MeshlessFVParticle<ndim>));
+           floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+           sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
       }
       else if (KernelName == "quintic") {
         mfv = new MfvMuscl<ndim, QuinticKernel>
           (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
            floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-           floatparams["gamma_eos"], stringparams["gas_eos"],
-           KernelName, sizeof(MeshlessFVParticle<ndim>));
+           floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+           sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
       }
       else if (KernelName == "gaussian") {
         mfv = new MfvMuscl<ndim, GaussianKernel>
           (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
            floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-           floatparams["gamma_eos"], stringparams["gas_eos"],
-           KernelName, sizeof(MeshlessFVParticle<ndim>));
+           floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+           sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
       }
       else {
         string message = "Unrecognised parameter : kernel = " + simparams->stringparams["kernel"];
@@ -175,30 +175,30 @@ void MeshlessFVSimulation<ndim>::ProcessParameters(void)
       mfv = new MfvRungeKutta<ndim, TabulatedKernel>
         (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
          floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-         floatparams["gamma_eos"], stringparams["gas_eos"],
-         KernelName, sizeof(MeshlessFVParticle<ndim>));
+         floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+         sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
     }
     else if (intparams["tabulated_kernel"] == 0) {
       if (KernelName == "m4") {
         mfv = new MfvRungeKutta<ndim, M4Kernel>
           (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
            floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-           floatparams["gamma_eos"], stringparams["gas_eos"],
-           KernelName, sizeof(MeshlessFVParticle<ndim>));
+           floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+           sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
       }
       else if (KernelName == "quintic") {
         mfv = new MfvRungeKutta<ndim, QuinticKernel>
           (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
            floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-           floatparams["gamma_eos"], stringparams["gas_eos"],
-           KernelName, sizeof(MeshlessFVParticle<ndim>));
+           floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+           sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
       }
       else if (KernelName == "gaussian") {
         mfv = new MfvRungeKutta<ndim, GaussianKernel>
           (intparams["hydro_forces"], intparams["self_gravity"], floatparams["accel_mult"],
            floatparams["courant_mult"], floatparams["h_fac"], floatparams["h_converge"],
-           floatparams["gamma_eos"], stringparams["gas_eos"],
-           KernelName, sizeof(MeshlessFVParticle<ndim>));
+           floatparams["gamma_eos"], stringparams["gas_eos"], KernelName,
+           sizeof(MeshlessFVParticle<ndim>), intparams["static_particles"]);
       }
       else {
         string message = "Unrecognised parameter : kernel = " + simparams->stringparams["kernel"];
@@ -337,6 +337,20 @@ void MeshlessFVSimulation<ndim>::ProcessParameters(void)
   }
   mfv->extpot = extpot;
   nbody->extpot = extpot;
+
+
+  // Stellar feedback object
+  //-----------------------------------------------------------------------------------------------
+  if (stringparams["feedback"] == "none") {
+    feedback = new NullFeedback<ndim>();
+  }
+  else if (stringparams["feedback"] == "hot_wind") {
+    feedback = new HotWindFeedback<ndim,MeshlessFVParticle>();
+  }
+  else {
+    string message = "Unrecognised or invalid parameter : feedback = " + stringparams["feedback"];
+    ExceptionHandler::getIstance().raise(message);
+  }
 
 
   // Create Ewald periodic gravity object

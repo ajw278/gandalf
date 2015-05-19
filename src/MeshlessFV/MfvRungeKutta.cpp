@@ -49,9 +49,9 @@ template <int ndim, template<int> class kernelclass>
 MfvRungeKutta<ndim, kernelclass>::MfvRungeKutta
   (int hydro_forces_aux, int self_gravity_aux, FLOAT _accel_mult, FLOAT _courant_mult,
    FLOAT h_fac_aux, FLOAT h_converge_aux, FLOAT gamma_aux, string gas_eos_aux, string KernelName,
-   int size_sph):
-  MeshlessFV<ndim>(hydro_forces_aux, self_gravity_aux, _accel_mult, _courant_mult,
-                   h_fac_aux, h_converge_aux, gamma_aux, gas_eos_aux, KernelName, size_sph),
+   int size_sph, int _staticParticles):
+  MeshlessFV<ndim>(hydro_forces_aux, self_gravity_aux, _accel_mult, _courant_mult, h_fac_aux,
+                   h_converge_aux, gamma_aux, gas_eos_aux, KernelName, size_sph, _staticParticles),
   kern(kernelclass<ndim>(KernelName))
 {
   this->kernp      = &kern;

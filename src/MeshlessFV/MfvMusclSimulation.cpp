@@ -50,7 +50,7 @@ using namespace std;
 
 //=================================================================================================
 //  MfvMusclSimulation::MainLoop
-/// Main SPH simulation integration loop.
+/// Main Meshless Finite-Volume MUSCL simulation integration loop.
 //=================================================================================================
 template <int ndim>
 void MfvMusclSimulation<ndim>::MainLoop(void)
@@ -60,7 +60,7 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
   int it;                              // Time-symmetric iteration counter
   int k;                               // Dimension counter
   FLOAT tghost;                        // Approx. ghost particle lifetime
-  MeshlessFVParticle<ndim> *partdata;         // Pointer to main SPH data array
+  MeshlessFVParticle<ndim> *partdata;  // Pointer to main SPH data array
 
   debug2("[MfvMusclSimulation::MainLoop]");
 
@@ -88,6 +88,24 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
       MpiGhosts->CopySphDataToGhosts(simbox, sph);
 #endif
     }*/
+
+
+  int Nnew = feedback->AddNewParticles();
+  if (Nnew > 0) rebuild_tree = true;
+
+
+  // Rebuild or update local neighbour and gravity tree
+  mfvneib->BuildTree(rebuild_tree, Nsteps, ntreebuildstep, ntreestockstep,
+                     mfv->Ntot, mfv->Nhydromax, timestep, partdata, mfv);
+
+
+  // Search for new ghost particles and create on local processor
+  //if (Nsteps%ntreebuildstep == 0 || rebuild_tree) {
+  tghost = timestep*(FLOAT)(ntreebuildstep - 1);
+  mfvneib->SearchBoundaryGhostParticles(tghost, simbox, mfv);
+  mfvneib->BuildGhostTree(rebuild_tree, Nsteps, ntreebuildstep, ntreestockstep,
+                          mfv->Ntot, mfv->Nhydromax, timestep, partdata, mfv);
+
 
   for (i=0; i<mfv->Nhydro; i++) {
     MeshlessFVParticle<ndim>& part = mfv->GetMeshlessFVParticlePointer(i);
@@ -130,15 +148,18 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
       //partdata[i].r[k] += (FLOAT) 0.5*(partdata[i].v0[k] + partdata[i].v[k])*timestep;
       partdata[i].a0[k] = partdata[i].a[k];
       partdata[i].v0[k] = partdata[i].v[k];
-      partdata[i].r[k] += partdata[i].v[k]*timestep;
-      if (partdata[i].r[k] < simbox.boxmin[k]) {
-        if (simbox.boundary_lhs[k] == periodicBoundary) {
-          partdata[i].r[k] += simbox.boxsize[k];
+
+      if (!mfv->staticParticles) {
+        partdata[i].r[k] += partdata[i].v[k]*timestep;
+        if (partdata[i].r[k] < simbox.boxmin[k]) {
+          if (simbox.boundary_lhs[k] == periodicBoundary) {
+            partdata[i].r[k] += simbox.boxsize[k];
+          }
         }
-      }
-      if (partdata[i].r[k] > simbox.boxmax[k]) {
-        if (simbox.boundary_rhs[k] == periodicBoundary) {
-          partdata[i].r[k] -= simbox.boxsize[k];
+        if (partdata[i].r[k] > simbox.boxmax[k]) {
+          if (simbox.boundary_rhs[k] == periodicBoundary) {
+            partdata[i].r[k] -= simbox.boxsize[k];
+          }
         }
       }
     }
@@ -166,8 +187,8 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
   //if (Nsteps%ntreebuildstep == 0 || rebuild_tree) {
   tghost = timestep*(FLOAT)(ntreebuildstep - 1);
   mfvneib->SearchBoundaryGhostParticles(tghost, simbox, mfv);
-  mfvneib->BuildGhostTree(rebuild_tree,Nsteps,ntreebuildstep,ntreestockstep,
-                          mfv->Ntot,mfv->Nhydromax,timestep,partdata,mfv);
+  mfvneib->BuildGhostTree(rebuild_tree, Nsteps, ntreebuildstep, ntreestockstep,
+                          mfv->Ntot, mfv->Nhydromax, timestep, partdata, mfv);
 
 
   //-----------------------------------------------------------------------------------------------

@@ -49,9 +49,9 @@ template <int ndim, template<int> class kernelclass>
 MfvMuscl<ndim, kernelclass>::MfvMuscl
   (int hydro_forces_aux, int self_gravity_aux, FLOAT _accel_mult, FLOAT _courant_mult,
    FLOAT h_fac_aux, FLOAT h_converge_aux, FLOAT gamma_aux, string gas_eos_aux, string KernelName,
-   int size_sph):
-  MeshlessFV<ndim>(hydro_forces_aux, self_gravity_aux, _accel_mult, _courant_mult,
-                   h_fac_aux, h_converge_aux, gamma_aux, gas_eos_aux, KernelName, size_sph),
+   int size_sph, int _staticParticles):
+  MeshlessFV<ndim>(hydro_forces_aux, self_gravity_aux, _accel_mult, _courant_mult, h_fac_aux,
+                   h_converge_aux, gamma_aux, gas_eos_aux, KernelName, size_sph, _staticParticles),
   kern(kernelclass<ndim>(KernelName))
 {
   this->kernp      = &kern;
@@ -491,17 +491,17 @@ void MfvMuscl<ndim, kernelclass>::ComputeGodunovFlux
   FLOAT dr_unit[ndim];                 // Unit vector from neighbour to part
   FLOAT drsqd;                         // ..
   FLOAT dvdr;                          // Dot product of dv and dr
-  FLOAT invdrmagaux;
-  FLOAT psitildai[ndim];
-  FLOAT psitildaj[ndim];
-  FLOAT rface[ndim];
-  FLOAT vface[ndim];
-  FLOAT flux[nvar][ndim];
-  FLOAT Wleft[nvar];
-  FLOAT Wright[nvar];
-  FLOAT Wdot[nvar];
-  FLOAT gradW[nvar][ndim];
-  FLOAT dW[nvar];
+  FLOAT dW[nvar];                      // ..
+  FLOAT flux[nvar][ndim];              // ..
+  FLOAT gradW[nvar][ndim];             // ..
+  FLOAT invdrmagaux;                   // ..
+  FLOAT psitildai[ndim];               // ..
+  FLOAT psitildaj[ndim];               // ..
+  FLOAT rface[ndim];                   // ..
+  FLOAT vface[ndim];                   // ..
+  FLOAT Wdot[nvar];                    // ..
+  FLOAT Wleft[nvar];                   // ..
+  FLOAT Wright[nvar];                  // ..
 
 
   // Initialise all particle flux variables
@@ -537,8 +537,13 @@ void MfvMuscl<ndim, kernelclass>::ComputeGodunovFlux
     //for (k=0; k<ndim; k++) vface[k] = (FLOAT) 0.5*(part.v[k] + neibpart[j].v[k]);
     for (k=0; k<ndim; k++) rface[k] = part.r[k] + part.h*(neibpart[j].r[k] - part.r[k])/(part.h + neibpart[j].h);
     for (k=0; k<ndim; k++) draux[k] = part.r[k] - rface[k];
-    for (k=0; k<ndim; k++) vface[k] = part.v[k] +
-      (neibpart[j].v[k] - part.v[k])*DotProduct(draux, dr_unit, ndim)*invdrmagaux;
+    if (staticParticles) {
+      for (k=0; k<ndim; k++) vface[k] = (FLOAT) 0.0;
+    }
+    else {
+      for (k=0; k<ndim; k++) vface[k] = part.v[k] +
+        (neibpart[j].v[k] - part.v[k])*DotProduct(draux, dr_unit, ndim)*invdrmagaux;
+    }
 
     // Compute slope-limited values for LHS
     for (k=0; k<ndim; k++) draux[k] = rface[k] - part.r[k];

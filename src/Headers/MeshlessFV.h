@@ -100,8 +100,8 @@ public:
   // Constructor
   //-----------------------------------------------------------------------------------------------
   MeshlessFV(int hydro_forces_aux, int self_gravity_aux, FLOAT _accel_mult,
-             FLOAT _courant_mult, FLOAT h_fac_aux, FLOAT h_converge_aux,
-             FLOAT gamma_aux, string gas_eos_aux, string KernelName, int size_mfv_part);
+             FLOAT _courant_mult, FLOAT h_fac_aux, FLOAT h_converge_aux, FLOAT gamma_aux,
+             string gas_eos_aux, string KernelName, int size_mfv_part, int _staticParticles);
   ~MeshlessFV();
 
 
@@ -152,6 +152,7 @@ public:
 
   // Const variables (read in from parameters file)
   //-----------------------------------------------------------------------------------------------
+  const int staticParticles;           ///< ..
   const FLOAT accel_mult;              ///< ..
   const FLOAT courant_mult;            ///< ..
   //const FLOAT gamma_eos;               ///< ..
@@ -214,6 +215,7 @@ class MfvMuscl : public MeshlessFV<ndim>
   using MeshlessFV<ndim>::Ntot;
   using MeshlessFV<ndim>::riemann;
   using MeshlessFV<ndim>::size_hydro_part;
+  using MeshlessFV<ndim>::staticParticles;
 
   static const FLOAT invndim=1./ndim;  ///< Copy of 1/ndim
   static const int nvar = ndim + 2;
@@ -229,8 +231,8 @@ class MfvMuscl : public MeshlessFV<ndim>
   // Constructor
   //-----------------------------------------------------------------------------------------------
   MfvMuscl(int hydro_forces_aux, int self_gravity_aux, FLOAT _accel_mult, FLOAT _courant_mult,
-            FLOAT h_fac_aux, FLOAT h_converge_aux,
-            FLOAT gamma_aux, string gas_eos_aux, string KernelName, int size_MeshlessFV_part);
+           FLOAT h_fac_aux, FLOAT h_converge_aux, FLOAT gamma_aux, string gas_eos_aux,
+           string KernelName, int size_MeshlessFV_part, int _staticParticles);
   ~MfvMuscl();
 
 
@@ -299,6 +301,7 @@ class MfvRungeKutta : public MeshlessFV<ndim>
   using MeshlessFV<ndim>::Ntot;
   using MeshlessFV<ndim>::riemann;
   using MeshlessFV<ndim>::size_hydro_part;
+  using MeshlessFV<ndim>::staticParticles;
 
   static const FLOAT invndim=1./ndim;  ///< Copy of 1/ndim
   static const int nvar = ndim + 2;
@@ -314,8 +317,8 @@ class MfvRungeKutta : public MeshlessFV<ndim>
   // Constructor
   //-----------------------------------------------------------------------------------------------
   MfvRungeKutta(int hydro_forces_aux, int self_gravity_aux, FLOAT _accel_mult, FLOAT _courant_mult,
-                FLOAT h_fac_aux, FLOAT h_converge_aux,
-                FLOAT gamma_aux, string gas_eos_aux, string KernelName, int size_MeshlessFV_part);
+                FLOAT h_fac_aux, FLOAT h_converge_aux, FLOAT gamma_aux, string gas_eos_aux,
+                string KernelName, int size_MeshlessFV_part, int _staticParticles);
   ~MfvRungeKutta();
 
 

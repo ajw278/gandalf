@@ -266,12 +266,28 @@ void GradhSphSimulation<ndim>::ProcessSphParameters(void)
        floatparams["Nphotonratio"], floatparams["temp_ion"], floatparams["arecomb"],
        floatparams["NLyC"], stringparams["rand_algorithm"], &simunits, sph->eos);
   }
-  else if (gas_radiation == "none")
+  else if (gas_radiation == "none") {
     radiation = new NullRadiation<ndim>();
+  }
   else {
     string message = "Unrecognised parameter : radiation = " + gas_radiation;
     ExceptionHandler::getIstance().raise(message);
   }
+
+
+  // Stellar feedback object
+  //-----------------------------------------------------------------------------------------------
+  if (stringparams["feedback"] == "none") {
+    feedback = new NullFeedback<ndim>();
+  }
+  else if (stringparams["feedback"] == "hot_wind") {
+    feedback = new HotWindFeedback<ndim,GradhSphParticle>();
+  }
+  else {
+    string message = "Unrecognised or invalid parameter : feedback = " + stringparams["feedback"];
+    ExceptionHandler::getIstance().raise(message);
+  }
+
 
 
   // Create ghost particle object

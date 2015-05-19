@@ -40,6 +40,7 @@
 #include "DomainBox.h"
 #include "Ewald.h"
 #include "ExternalPotential.h"
+#include "Feedback.h"
 #include "Hydrodynamics.h"
 #include "MeshlessFV.h"
 #include "MfvNeighbourSearch.h"
@@ -229,6 +230,7 @@ class Simulation : public SimulationBase
  public:
   Simulation(Parameters* parameters) :
     SimulationBase(parameters),
+    hydro(NULL),
     nbody(NULL),
     sph(NULL) {this->ndims=ndim;};
 
@@ -284,6 +286,7 @@ class Simulation : public SimulationBase
   EnergyEquation<ndim> *uint;         ///< Energy equation pointer
   ExternalPotential<ndim> *extpot;    ///< Pointer to external potential object
   Ewald<ndim> *ewald;                 ///< Ewald periodic gravity object
+  Feedback<ndim> *feedback;           ///< Stellar feedback object
   Ghosts<ndim>* LocalGhosts;          ///< Periodic ghost particle object
   Hydrodynamics<ndim> *hydro;         ///< Hydrodynamics algorithm pointer
   Nbody<ndim> *nbody;                 ///< N-body algorithm pointer
@@ -324,6 +327,7 @@ class SphSimulation : public Simulation<ndim>
  public:
   using Simulation<ndim>::ewaldGravity;
   using Simulation<ndim>::extra_sink_output;
+  using Simulation<ndim>::feedback;
   using Simulation<ndim>::periodicBoundaries;
   using Simulation<ndim>::Nmpi;
   using Simulation<ndim>::pruning_level;
@@ -422,6 +426,7 @@ class GradhSphSimulation: public SphSimulation<ndim>
 {
  public:
 
+  using Simulation<ndim>::feedback;
   using Simulation<ndim>::Nmpi;
   using Simulation<ndim>::restart;
   using Simulation<ndim>::simparams;
@@ -569,6 +574,7 @@ class MeshlessFVSimulation : public Simulation<ndim>
  public:
   using Simulation<ndim>::ewaldGravity;
   using Simulation<ndim>::extra_sink_output;
+  using Simulation<ndim>::feedback;
   using Simulation<ndim>::periodicBoundaries;
   using Simulation<ndim>::Nmpi;
   using Simulation<ndim>::pruning_level;
@@ -662,6 +668,7 @@ class MfvMusclSimulation : public MeshlessFVSimulation<ndim>
  public:
   using Simulation<ndim>::ewaldGravity;
   using Simulation<ndim>::extra_sink_output;
+  using Simulation<ndim>::feedback;
   using Simulation<ndim>::periodicBoundaries;
   using Simulation<ndim>::Nmpi;
   using Simulation<ndim>::pruning_level;
