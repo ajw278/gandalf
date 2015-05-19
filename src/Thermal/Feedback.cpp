@@ -31,10 +31,10 @@ using namespace std;
 
 
 
-//=============================================================================
+//=================================================================================================
 //  HotWindFeedback::HotWindFeedback
 /// ...
-//=============================================================================
+//=================================================================================================
 template <int ndim, template<int> class ParticleType>
 HotWindFeedback<ndim,ParticleType>::HotWindFeedback()
 {
@@ -42,13 +42,48 @@ HotWindFeedback<ndim,ParticleType>::HotWindFeedback()
 
 
 
-//=============================================================================
+//=================================================================================================
 //  HotWindFeedback::AddNewParticles
 /// ...
-//=============================================================================
-template <int ndim, template<int> class ParticleType>
-int HotWindFeedback<ndim,ParticleType>::AddNewParticles()
+//=================================================================================================
+/*template <int ndim, template<int> class ParticleType>
+int HotWindFeedback<ndim,ParticleType>::AddNewParticles
+ (FLOAT t,
+  FLOAT timestep,
+  Hydrodynamics<ndim> *hydro)
 {
+
+  return 0;
+}*/
+
+
+
+//=================================================================================================
+//  HotWindFeedback::AddMassFlux
+/// ...
+//=================================================================================================
+template <int ndim, template<int> class ParticleType>
+int HotWindFeedback<ndim,ParticleType>::AddWindMassFlux
+ (FLOAT t,
+  FLOAT timestep,
+  Hydrodynamics<ndim> *hydro)
+{
+  ParticleType<ndim> *partdata = static_cast<ParticleType<ndim>* > (hydro->GetParticleArray());
+
+
+  // Add new particles if we need to
+  //-----------------------------------------------------------------------------------------------
+  if (t > 0.0) {
+
+  }
+  // Otherwise, simply add mass, momentum and energy flux to current generation of wind particles
+  //-----------------------------------------------------------------------------------------------
+  else {
+
+  }
+  //-----------------------------------------------------------------------------------------------
+
+
   return 0;
 }
 

@@ -29,6 +29,7 @@
 #include "Precision.h"
 #include "Constants.h"
 #include "InlineFuncs.h"
+#include "Hydrodynamics.h"
 using namespace std;
 
 
@@ -48,7 +49,8 @@ class Feedback
   Feedback() {};
   virtual ~Feedback() {};
 
-  virtual int AddNewParticles(void) = 0;
+  //virtual int AddNewParticles(FLOAT, FLOAT, Hydrodynamics<ndim> *) = 0;
+  virtual int AddWindMassFlux(FLOAT, FLOAT, Hydrodynamics<ndim> *) = 0;
 
 };
 
@@ -69,7 +71,8 @@ class NullFeedback : public Feedback<ndim>
   NullFeedback() {};
   virtual ~NullFeedback() {};
 
-  virtual int AddNewParticles(void) {return 0;}
+  //virtual int AddNewParticles(FLOAT, FLOAT, Hydrodynamics<ndim> *) {return 0;}
+  virtual int AddWindMassFlux(FLOAT, FLOAT, Hydrodynamics<ndim> *) {};
 
 };
 
@@ -90,7 +93,8 @@ class HotWindFeedback : public Feedback<ndim>
   HotWindFeedback();
   virtual ~HotWindFeedback() {};
 
-  virtual int AddNewParticles(void);
+  //virtual int AddNewParticles(FLOAT, FLOAT, Hydrodynamics<ndim> *);
+  virtual int AddWindMassFlux(FLOAT, FLOAT, Hydrodynamics<ndim> *);
 
 };
 

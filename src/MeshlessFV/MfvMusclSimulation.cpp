@@ -90,23 +90,6 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
     }*/
 
 
-  int Nnew = feedback->AddNewParticles();
-  if (Nnew > 0) rebuild_tree = true;
-
-
-  // Rebuild or update local neighbour and gravity tree
-  mfvneib->BuildTree(rebuild_tree, Nsteps, ntreebuildstep, ntreestockstep,
-                     mfv->Ntot, mfv->Nhydromax, timestep, partdata, mfv);
-
-
-  // Search for new ghost particles and create on local processor
-  //if (Nsteps%ntreebuildstep == 0 || rebuild_tree) {
-  tghost = timestep*(FLOAT)(ntreebuildstep - 1);
-  mfvneib->SearchBoundaryGhostParticles(tghost, simbox, mfv);
-  mfvneib->BuildGhostTree(rebuild_tree, Nsteps, ntreebuildstep, ntreestockstep,
-                          mfv->Ntot, mfv->Nhydromax, timestep, partdata, mfv);
-
-
   for (i=0; i<mfv->Nhydro; i++) {
     MeshlessFVParticle<ndim>& part = mfv->GetMeshlessFVParticlePointer(i);
     part.active = true;
@@ -138,6 +121,7 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
 
 
   mfvneib->UpdateGodunovFluxes(mfv->Nhydro, mfv->Ntot, timestep, partdata, mfv, nbody);
+
 
 
   // Integrate all conserved variables to end of timestep
@@ -176,6 +160,12 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
     mfv->ConvertConservedToPrimitive(partdata[i].Ucons, partdata[i].Wprim);
     mfv->UpdateArrayVariables(partdata[i]);
   }
+
+
+  // If new particles are being generated due to feedback, or there is a mass flux due to to a
+  // wind, then calculate fluxes here.
+  int Nnew = feedback->AddWindMassFlux(t, timestep, mfv);
+  if (Nnew > 0) rebuild_tree = true;
 
 
   // Rebuild or update local neighbour and gravity tree
