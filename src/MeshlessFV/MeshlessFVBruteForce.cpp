@@ -160,9 +160,8 @@ void MeshlessFVBruteForce<ndim,ParticleType>::UpdateAllProperties
 
 //=================================================================================================
 //  MeshlessFVBruteForceSearch::UpdateGradientMatrices
-/// Routine for computing SPH properties (smoothing lengths, densities and
-/// forces) for all active SPH particle using neighbour lists generated
-/// using brute force (i.e. direct summation).
+/// Routine for computing particle properties (smoothing lengths, densities and forces) for all
+/// active particles using neighbour lists generated using brute force (i.e. direct summation).
 //=================================================================================================
 template <int ndim, template<int> class ParticleType>
 void MeshlessFVBruteForce<ndim,ParticleType>::UpdateGradientMatrices

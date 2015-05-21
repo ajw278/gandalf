@@ -266,6 +266,7 @@ void Parameters::SetDefaultValues(void)
   floatparams["eta_eos"] = 1.4;
   stringparams["radws_table"] = "eos.bell.cc.dat";
   floatparams["temp_ambient"] = 5.0;
+  stringparams["feedback"] = "none";
 
   // Artificial viscosity parameters
   //-----------------------------------------------------------------------------------------------

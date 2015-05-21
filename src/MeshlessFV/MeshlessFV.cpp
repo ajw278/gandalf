@@ -215,6 +215,8 @@ void MeshlessFV<ndim>::ComputeThermalProperties
   part.sound = eos->SoundSpeed(part);
   part.press = eos->Pressure(part);
 
+  //cout << "u : " << part.rho << "   " << part.sound << "   " << part.press << endl;
+
   assert(part.u > 0.0);
   assert(part.sound > 0.0);
   assert(part.press > 0.0);
@@ -246,7 +248,7 @@ FLOAT MeshlessFV<ndim>::Timestep(MeshlessFVParticle<ndim> &part)
 
 
 //=================================================================================================
-//  MeshlessFV<ndim>::Timestep
+//  MeshlessFV<ndim>::IntegrateConservedVariables
 /// ...
 //=================================================================================================
 template <int ndim>
@@ -298,7 +300,8 @@ void MeshlessFV<ndim>::UpdateArrayVariables(MeshlessFVParticle<ndim> &part)
   part.press = (gamma_eos - 1.0)*part.rho*part.u;
 
   if (part.u < 0.0 || part.m < 0.0) {
-    cout << "Mistake? : " << part.Qcons[ietot] << "    " << 0.5*part.m*ekin << "    " << part.m << "    " << part.u << endl;
+    cout << "Mistake? : " << part.Qcons[ietot] << "    " << 0.5*part.m*ekin << "    "
+         << part.m << "    " << part.u << endl;
     cout << "r : " << part.r[0] << "     v : " << part.v[0] << endl;
     cout << "Internal energy : " << part.u << "     " << part.Utot/part.m << endl;
   }

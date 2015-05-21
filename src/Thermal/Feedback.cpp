@@ -21,9 +21,11 @@
 //=================================================================================================
 
 
+#include <assert.h>
 #include <iostream>
 #include <string>
 #include "Feedback.h"
+#include "chealpix.h"
 #if defined _OPENMP
 #include <omp.h>
 #endif
@@ -38,6 +40,9 @@ using namespace std;
 template <int ndim, template<int> class ParticleType>
 HotWindFeedback<ndim,ParticleType>::HotWindFeedback()
 {
+  ifirstshell = -1;
+  ilastshell = -1;
+  tlastshell = 0.0;
 }
 
 
@@ -68,23 +73,97 @@ int HotWindFeedback<ndim,ParticleType>::AddWindMassFlux
   FLOAT timestep,
   Hydrodynamics<ndim> *hydro)
 {
+  FLOAT rsource[ndim];
   ParticleType<ndim> *partdata = static_cast<ParticleType<ndim>* > (hydro->GetParticleArray());
+
+  int i,k;
+  int level = 0;
+  //int Nwind = 12;
+  long nside = (long) (pow(2,level));
+  int Nwind = (int) (12*nside*nside);
+
+
+  cout << "WINDS!!" << endl;
+
+
+  int Nnew = 0;
+  FLOAT mwind = 0.0001;
+  FLOAT mdot = 0.01;
+  FLOAT vwind = 10.0;
+  FLOAT vshell;
+  FLOAT rshell = 0.01;
+  FLOAT mu_ion = 0.5;
+  FLOAT kb = 1.0;
+  FLOAT gamma = 1.6666666666;
+  double rnew[ndim];
+  FLOAT dt;
+  for (k=0; k<ndim; k++) rsource[k] = 0.0;
+
+  FLOAT dt_wind = (FLOAT) Nwind*mwind/mdot;
+  vshell = rshell/dt_wind;
+  FLOAT Twind = 3.0*mu_ion*vwind*vwind/16.0/kb;
+  FLOAT uwind = Twind / (gamma - 1.0);
+
+
+  //assert(dt_wind < timestep);
+
+
+  // First, add mass to existing particles
+  if (ifirstshell != -1) {
+
+    if (t > tlastshell + dt_wind) dt = t - tlastshell + dt_wind;
+    else dt = timestep;
+
+    for (i=ifirstshell; i<=ilastshell; i++) {
+      for (k=0; k<ndim; k++) partdata[i].r0[k] = partdata[i].r[k];
+      for (k=0; k<ndim; k++) partdata[i].v0[k] = partdata[i].v[k];
+      for (k=0; k<ndim; k++) partdata[i].r[k] = rsource[k] + partdata[i].v[k]*(t - tlastshell);
+      partdata[i].m += mdot*dt/(FLOAT) Nwind;
+      if (t > tlastshell + dt_wind) partdata[i].itype = gas;
+    }
+
+  }
 
 
   // Add new particles if we need to
   //-----------------------------------------------------------------------------------------------
-  if (t > 0.0) {
+  if (t > tlastshell) {
+
+    ifirstshell = hydro->Nhydro;
+    ilastshell = hydro->Nhydro + Nwind - 1;
+
+    for (long ipix=0; ipix<Nwind; ipix++) {
+      int inew = hydro->Nhydro + ipix;
+      pix2vec_nest(nside, ipix, rnew);
+      for (k=0; k<ndim; k++) partdata[inew].v[k] = vshell*rnew[k];
+      for (k=0; k<ndim; k++) partdata[inew].r[k] = rsource[k] + partdata[inew].v[k]*(t - tlastshell);
+
+      ParticleType<ndim> &part = partdata[inew];
+      partdata[inew].m     = mdot*(t - tlastshell)/(FLOAT) Nwind;
+      partdata[inew].u     = uwind;
+      partdata[inew].itype = wind;
+      partdata[inew].h     = 0.5*rshell;
+      partdata[inew].rho   = part.m/(4.0*pi*pow(0.5*rshell,3)/3.0);
+
+      cout << "New particle : " << part.m << "    " << part.u << "    " << vshell << endl;
+      cout << "rnew         : " << rnew[0] << "   " << rnew[1] << "   " << rnew[2] << endl;
+
+    }
+
+
+    tlastshell = tlastshell + dt_wind;
+    hydro->Nhydro += Nwind;
+    Nnew = Nwind;
+
+    cout << "Created new wind particles : " << Nwind << "   " << hydro->Nhydro << endl;
 
   }
-  // Otherwise, simply add mass, momentum and energy flux to current generation of wind particles
-  //-----------------------------------------------------------------------------------------------
-  else {
-
-  }
-  //-----------------------------------------------------------------------------------------------
 
 
-  return 0;
+  cout << "t : " << t << "   " << tlastshell << "   " << dt_wind << endl;
+
+
+  return Nnew;
 }
 
 

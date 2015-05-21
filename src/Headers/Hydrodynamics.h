@@ -50,7 +50,7 @@ class Hydrodynamics;
 template <int ndim>
 class EOS;
 
-static const FLOAT ghost_range = 1.6;
+static const FLOAT ghost_range = 2.0;
 
 
 //=================================================================================================

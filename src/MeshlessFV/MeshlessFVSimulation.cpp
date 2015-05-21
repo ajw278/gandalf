@@ -235,11 +235,13 @@ void MeshlessFVSimulation<ndim>::ProcessParameters(void)
   }
 
 
-
   // Slope limiter
   //-----------------------------------------------------------------------------------------------
   string limiter = stringparams["slope_limiter"];
-  if (limiter == "balsara2004") {
+  if (limiter == "zeroslope") {
+    mfv->limiter = new ZeroSlopeLimiter<ndim,MeshlessFVParticle>();
+  }
+  else if (limiter == "balsara2004") {
     mfv->limiter = new Balsara2004Limiter<ndim,MeshlessFVParticle>();
   }
   else if (limiter == "springel2009") {

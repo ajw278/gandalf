@@ -58,6 +58,35 @@ class SlopeLimiter
 
 
 //=================================================================================================
+//  Class ZeroSlopeLimiter
+/// \brief   ...
+/// \details ...
+/// \author  D. A. Hubber
+/// \date    23/03/2015
+//=================================================================================================
+template <int ndim, template<int> class ParticleType>
+class ZeroSlopeLimiter : public SlopeLimiter<ndim,ParticleType>
+{
+ public:
+
+  ZeroSlopeLimiter() {};
+  ~ZeroSlopeLimiter() {};
+
+  //===============================================================================================
+  void ComputeLimitedSlopes(ParticleType<ndim> &parti, ParticleType<ndim> &partj,
+                            FLOAT draux[ndim], FLOAT gradW[ndim+2][ndim], FLOAT dW[ndim+2])
+  {
+    for (int var=0; var<ndim+2; var++) {
+      dW[var] = 0.0;
+      for (int k=0; k<ndim; k++) gradW[var][k] = 0.0;
+    }
+  }
+
+};
+
+
+
+//=================================================================================================
 //  Class Springel2009Limiter
 /// \brief   ...
 /// \details ...
@@ -117,7 +146,7 @@ class TESS2011Limiter : public SlopeLimiter<ndim,ParticleType>
   {
     int var;
     FLOAT alpha;
-    const FLOAT theta = 0.5;
+    const FLOAT theta = 1.0;
 
     for (var=0; var<ndim+2; var++) {
       dW[var] = DotProduct(parti.grad[var], draux, ndim);

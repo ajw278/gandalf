@@ -191,6 +191,7 @@ int MfvMuscl<ndim, kernelclass>::ComputeH
 
 
   // Set important thermal variables here
+  //cout << "Particle thermal : " << i << "   " << part.u << "   " << part.itype << endl;
   this->ComputeThermalProperties(part);
 
 
@@ -464,7 +465,6 @@ void MfvMuscl<ndim, kernelclass>::CopyDataToGhosts
 
 
 
-
 //=================================================================================================
 //  MfvMuscl::ComputeGodunovFlux
 /// ...
@@ -553,6 +553,8 @@ void MfvMuscl<ndim, kernelclass>::ComputeGodunovFlux
 
     // Time-integrate LHS state to half-timestep value
     this->CalculatePrimitiveTimeDerivative(Wleft, gradW, Wdot);
+    //cout << "part : " << part.rho << "   " << part.ndens << "   " << part.m << "    " << part.m*part.ndens << endl;
+    //cout << Wleft[0] << "   " << Wleft[1] << "   " << Wleft[2] << "   " << Wleft[3] << "   " << Wright[4] << endl;
     assert(Wleft[irho] > 0.0);
     assert(Wleft[ipress] > 0.0);
     for (var=0; var<nvar; var++) Wleft[var] -= (FLOAT) 0.5*timestep*Wdot[var];

@@ -69,27 +69,6 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
   partdata = mfv->GetMeshlessFVParticleArray();
 
 
-  // Advance SPH and N-body particles' positions and velocities
-  /*uint->EnergyIntegration(n,mfv->Nhydro,(FLOAT) t,(FLOAT) timestep,mfv->GetMeshlessFVParticleArray());
-  sphint->AdvanceParticles(n,mfv->Nhydro,(FLOAT) t,(FLOAT) timestep,mfv->GetMeshlessFVParticleArray());
-  nbody->AdvanceParticles(n,nbody->Nnbody,t,timestep,nbody->nbodydata);*/
-
-  // Check all boundary conditions
-  // (DAVID : Move this function to sphint and create an analagous one
-  //  for N-body.  Also, only check this on tree-build steps)
-  //if (Nsteps%ntreebuildstep == 0 || rebuild_tree) sphint->CheckBoundaries(simbox,sph);
-
-
-    //}
-    // Otherwise copy properties from original particles to ghost particles
-    /*else {
-      LocalGhosts->CopySphDataToGhosts(simbox, sph);
-#ifdef MPI_PARALLEL
-      MpiGhosts->CopySphDataToGhosts(simbox, sph);
-#endif
-    }*/
-
-
   for (i=0; i<mfv->Nhydro; i++) {
     MeshlessFVParticle<ndim>& part = mfv->GetMeshlessFVParticlePointer(i);
     part.active = true;
@@ -97,8 +76,17 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
     for (k=0; k<ndim; k++) partdata[i].rdmdt0[k] = partdata[i].rdmdt[k];
   }
 
+  mfv->CopyDataToGhosts(simbox, partdata);
+
   // Calculate all properties
   mfvneib->UpdateAllProperties(mfv->Nhydro, mfv->Ntot, partdata, mfv, nbody);
+
+  for (i=0; i<mfv->Nhydro; i++) {
+    MeshlessFVParticle<ndim>& part = mfv->GetMeshlessFVParticlePointer(i);
+    mfv->UpdatePrimitiveVector(partdata[i]);
+    mfv->ConvertPrimitiveToConserved(partdata[i].Wprim, partdata[i].Ucons);
+    mfv->ConvertConservedToQ(partdata[i].volume, partdata[i].Ucons, partdata[i].Qcons);
+  }
 
   mfv->CopyDataToGhosts(simbox, partdata);
 
@@ -111,6 +99,9 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
   this->ComputeGlobalTimestep();
   //if (Nlevels == 1) this->ComputeGlobalTimestep();
   //else this->ComputeBlockTimesteps();
+
+  // WIND TIMESTEP HACK!!
+  if (Nsteps == 0) timestep = 1.0e-8;
 
   // Advance time variables
   n = n + 1;
@@ -133,7 +124,7 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
       partdata[i].a0[k] = partdata[i].a[k];
       partdata[i].v0[k] = partdata[i].v[k];
 
-      if (!mfv->staticParticles) {
+      if (!mfv->staticParticles && partdata[i].itype != wind) {
         partdata[i].r[k] += partdata[i].v[k]*timestep;
         if (partdata[i].r[k] < simbox.boxmin[k]) {
           if (simbox.boundary_lhs[k] == periodicBoundary) {
@@ -165,7 +156,15 @@ void MfvMusclSimulation<ndim>::MainLoop(void)
   // If new particles are being generated due to feedback, or there is a mass flux due to to a
   // wind, then calculate fluxes here.
   int Nnew = feedback->AddWindMassFlux(t, timestep, mfv);
-  if (Nnew > 0) rebuild_tree = true;
+  if (Nnew > 0) {
+    rebuild_tree = true;
+    for (i=feedback->ifirstshell; i<feedback->ilastshell; i++) {
+      partdata[i].press = mfv->eos->gammam1*partdata[i].rho*partdata[i].u;
+      mfv->UpdatePrimitiveVector(partdata[i]);
+      mfv->ConvertPrimitiveToConserved(partdata[i].Wprim, partdata[i].Ucons);
+      mfv->ConvertConservedToQ(partdata[i].volume, partdata[i].Ucons, partdata[i].Qcons);
+    }
+  }
 
 
   // Rebuild or update local neighbour and gravity tree

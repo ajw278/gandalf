@@ -30,6 +30,7 @@
 #include "Constants.h"
 #include "InlineFuncs.h"
 #include "Hydrodynamics.h"
+#include "chealpix.h"
 using namespace std;
 
 
@@ -45,6 +46,9 @@ template <int ndim>
 class Feedback
 {
  public:
+
+   int ifirstshell;
+   int ilastshell;
 
   Feedback() {};
   virtual ~Feedback() {};
@@ -89,6 +93,12 @@ template <int ndim, template<int> class ParticleType>
 class HotWindFeedback : public Feedback<ndim>
 {
  public:
+
+  using Feedback<ndim>::ifirstshell;
+  using Feedback<ndim>::ilastshell;
+
+  FLOAT tlastshell;
+
 
   HotWindFeedback();
   virtual ~HotWindFeedback() {};
