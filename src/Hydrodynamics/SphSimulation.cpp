@@ -542,6 +542,10 @@ void SphSimulation<ndim>::PostInitialConditionsSetup(void)
       sph->extpot->AddExternalPotential(part.r, part.v, part.a, adot, part.gpot);
     }
 
+    // Compute the dust forces if present.
+    if (sphdust != NULL)
+  	  sphdust->UpdateAllDragForces(sph->Nhydro, sph->Ntot, partdata) ;
+
     // Set initial accelerations
     for (i=0; i<sph->Nhydro; i++) {
       SphParticle<ndim>& part = sph->GetSphParticlePointer(i);
@@ -620,7 +624,6 @@ void SphSimulation<ndim>::MainLoop(void)
   SphParticle<ndim> *partdata = sph->GetSphParticleArray();
 
   debug2("[SphSimulation::MainLoop]");
-
 
   // Compute timesteps for all particles
   if (Nlevels == 1) this->ComputeGlobalTimestep();
@@ -721,6 +724,7 @@ void SphSimulation<ndim>::MainLoop(void)
           part.gpot      = (FLOAT) 0.0;
           for (k=0; k<ndim; k++) part.a[k] = (FLOAT) 0.0;
           for (k=0; k<ndim; k++) part.agrav[k] = (FLOAT) 0.0;
+          for (k=0; k<ndim; k++) part.a_dust[k] = (FLOAT) 0.0;
         }
       }
 
@@ -787,6 +791,14 @@ void SphSimulation<ndim>::MainLoop(void)
         if (part.active) {
           sph->extpot->AddExternalPotential(part.r, part.v, part.a, adot, part.gpot);
         }
+      }
+
+
+      // Compute the dust forces if present.
+      if (sphdust != NULL){
+          // Copy properties from original particles to ghost particles
+          LocalGhosts->CopyHydroDataToGhosts(simbox, sph);
+    	  sphdust->UpdateAllDragForces(sph->Nhydro, sph->Ntot, partdata) ;
       }
 
       // Checking if acceleration or other values are invalid
