@@ -39,9 +39,9 @@ Angular velocity unit                       : angveloutunit = rad_s
 #--------------------------
 # Simulation time variables
 #--------------------------
-Simulation end time                         : tend = 0.05
+Simulation end time                         : tend = 0.025
 Regular snapshot output frequency           : dt_snap = 0.005
-Time of first snapshot                      : tsnapfirst = 0.0001
+Time of first snapshot                      : tsnapfirst = 0.00
 Screen output frequency (in no. of steps)   : noutputstep = 16
 Diagnostic output frequency                 : ndiagstep = 32
 
@@ -67,7 +67,6 @@ Switch-on self-gravity of gas               : self_gravity = 1
 #----------------------------------------
 # Smoothed Particle Hydrodynamics options
 #----------------------------------------
-SPH algorithm choice                        : sph = gradh
 SPH smoothing kernel choice                 : kernel = m4
 SPH smoothing length iteration tolerance    : h_converge = 0.01
 

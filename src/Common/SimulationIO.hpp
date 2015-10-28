@@ -795,13 +795,13 @@ bool Simulation<ndim>::ReadSerenFormSnapshotFile(string filename)
       else if (ndim == 2) {
         for (i=0; i<hydro->Nhydro; i++) {
           Particle<ndim>& part = hydro->GetParticlePointer(i);
-          infile >> part.v[0] >> part.r[1];
+          infile >> part.v[0] >> part.v[1];
         }
       }
       else if (ndim == 3) {
         for (i=0; i<hydro->Nhydro; i++) {
           Particle<ndim>& part = hydro->GetParticlePointer(i);
-          infile >> part.v[0] >> part.r[1] >> part.r[2];
+          infile >> part.v[0] >> part.v[1] >> part.v[2];
         }
       }
     }
@@ -1771,8 +1771,6 @@ bool Simulation<ndim>::WriteSerenUnformSnapshotFile(string filename)
 
   // Sinks/stars
   //---------------------------------------------------------------------------
-  if (rank==0)
-	cout << "about to write stars, nstar: " << nbody->Nstar << endl;
   if (rank==0 && nbody->Nstar > 0) {
 
     ofstream outfile(filename.c_str(),ios::binary|ios::app);

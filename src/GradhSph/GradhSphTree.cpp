@@ -386,7 +386,9 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphProperties
     int c = celllist[cc].id;
     tree->celldata[c].worktot += twork*(DOUBLE) tree->celldata[c].Nactive / (DOUBLE) Nactivetot;
   }
+#ifdef OUTPUT_ALL
   cout << "Time computing smoothing lengths : " << twork << "     Nactivetot : " << Nactivetot << endl;
+#endif
 #endif
 
   delete[] celllist;
@@ -635,7 +637,9 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphHydroForces
     int c = celllist[cc].id;
     tree->celldata[c].worktot += twork*(DOUBLE) tree->celldata[c].Nactive / (DOUBLE) Nactivetot;
   }
+#ifdef OUTPUT_ALL
   cout << "Time computing forces : " << twork << "     Nactivetot : " << Nactivetot << endl;
+#endif
 #endif
 
 
@@ -711,7 +715,7 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphForces
     FLOAT drsqd;                                 // Distance squared
     FLOAT hrangesqdi;                            // Kernel gather extent
     FLOAT rp[ndim];                              // ..
-    Typemask gravmask;                           // Mask for computing hydro forces
+    Typemask gravmask;                           // Mask for computing gravitational forces
     Typemask hydromask;                          // Mask for computing hydro forces
     int Nneibmax     = Nneibmaxbuf[ithread];     // ..
     int Ngravcellmax = Ngravcellmaxbuf[ithread]; // ..
@@ -1201,7 +1205,6 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphPeriodicHydroForces
   debug2("[GradhSphTree::UpdateAllSphPeriodicHydroForces]");
   timing->StartTimingSection("SPH_PERIODIC_HYDRO_FORCES");
 
-
   // Find list of all cells that contain active particles
 #if defined (MPI_PARALLEL)
   celllist = new TreeCell<ndim>[tree->Ncellmax];
@@ -1211,7 +1214,7 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphPeriodicHydroForces
   cactive = tree->ComputeActiveCellList(celllist);
 
   // If there are no active cells, return to main loop
-  if (cactive == 0) return;
+  //if (cactive == 0) return;
 
   // Update ghost tree smoothing length values here
   tree->UpdateHmaxValues(tree->celldata[0],sphdata);
@@ -1239,6 +1242,7 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphPeriodicHydroForces
     FLOAT drsqd;                                   // Distance squared
     FLOAT hrangesqdi;                              // Kernel gather extent
     FLOAT rp[ndim];                                // Local copy of particle position
+    Typemask hydromask;                            // Mask for computing hydro forces
     int Nneibmax      = Nneibmaxbuf[ithread];      // ..
     int* activelist   = activelistbuf[ithread];    // ..
     int* levelneib    = levelneibbuf[ithread];     // ..
@@ -1314,9 +1318,8 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphPeriodicHydroForces
 
         bool do_hydro   = sph->types[activepart[j].ptype].hydro_forces ;
         if (do_hydro){
-        	Typemask hmask ;
-        	for (k=0; k<Ntypes; k++) hmask[k] = sph->types[activepart[j].ptype].hmask[k] ;
-
+          Typemask hmask ;
+          for (k=0; k<Ntypes; k++) hmask[k] = sph->types[activepart[j].ptype].hmask[k] ;
           for (k=0; k<ndim; k++) rp[k] = activepart[j].r[k];
           hrangesqdi = activepart[j].hrangesqd;
           Nhydroaux = 0;
@@ -1359,11 +1362,13 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphPeriodicHydroForces
 
 
       // Compute all star forces for active particles
-      /*if (nbody->Nnbody > 0) {
-        for (j=0; j<Nactive; j++)
-          if (activelist[j] < sph->Nhydro)
-          sph->ComputeStarGravForces(nbody->Nnbody,nbody->nbodydata,activepart[j]);
-      }*/
+      if (nbody->Nnbody > 0) {
+        for (j=0; j<Nactive; j++) {
+          if (activelist[j] < sph->Nhydro) {
+            sph->ComputeStarGravForces(nbody->Nnbody,nbody->nbodydata,activepart[j]);
+          }
+        }
+      }
 
 
       // Add all active particles contributions to main array
@@ -1405,7 +1410,9 @@ void GradhSphTree<ndim,ParticleType,TreeCell>::UpdateAllSphPeriodicHydroForces
     int c = celllist[cc].id;
     tree->celldata[c].worktot += twork*(DOUBLE) tree->celldata[c].Nactive / (DOUBLE) Nactivetot;
   }
+#ifdef OUTPUT_ALL
   cout << "Time computing forces : " << twork << "     Nactivetot : " << Nactivetot << endl;
+#endif
 #endif
 
 

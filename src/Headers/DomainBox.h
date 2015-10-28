@@ -117,7 +117,7 @@ bool IsAnyBoundarySpecial(const DomainBox<ndim>& box)
 
 
 //=================================================================================================
-///  ...
+/// \brief  Helper function to set the boundary type enum from the string parameter.
 //=================================================================================================
 inline boundaryEnum setBoundaryType(string boundaryString)
 {
@@ -189,23 +189,9 @@ static inline void NearestPeriodicVector
     }
   }
   for (int k=0; k<ndim; k++) dr[k] += dr_corr[k];
-  /*if (ndim == 2 || ndim == 3) {
-    if (box.boundary_lhs[1] == periodicBoundary && box.boundary_rhs[1] == periodicBoundary) {
-      if (dr[1] > box.boxhalf[1]) dr_corr[1] = -box.boxsize[1];
-      else if (dr[1] < -box.boxhalf[1]) dr_corr[1] = box.boxsize[1];
-    }
-  }
-  if (ndim == 3) {
-    if (box.boundary_lhs[2] == periodicBoundary && box.boundary_rhs[2] == periodicBoundary) {
-      if (dr[2] > box.boxhalf[2]) dr_corr[2] = -box.boxsize[2];
-      else if (dr[2] < -box.boxhalf[2]) dr_corr[2] = box.boxsize[2];
-    }
-  }*/
 
   return;
 }
-
-
 
 //=================================================================================================
 /// \brief  Helper function to find if two boxes overlap
@@ -480,9 +466,5 @@ private:
 	bool _periodic_bound[ndim] ;
 	bool _any_periodic, _any_mirror, _need_mirrors, _any_special;
 };
-
-
-
-
 
 #endif

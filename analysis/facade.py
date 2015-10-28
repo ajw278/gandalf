@@ -70,6 +70,7 @@ else:
 
 import commandsource as Commands
 from data_fetcher import CreateUserQuantity, CreateTimeData, UserQuantity
+from data_fetcher import _KnownQuantities as KnownQuantities
 import signal
 from time import sleep
 from statistics import structure_function
@@ -245,7 +246,7 @@ Optional arguments:
 def render(x, y, render, snap="current", sim="current", overplot=False,
            autoscale=False, autoscalerender=False, coordlimits=None,
            zslice=None, xunit="default", yunit="default",
-           renderunit="default", res=64, interpolation='nearest',**kwargs):
+           renderunit="default", res=64, interpolation='nearest',lognorm=False,**kwargs):
     '''Create a rendered plot from selected particle data.
 
 Required arguments:
@@ -292,6 +293,10 @@ Optional arguments:
                     wants to smooth the image, bilinear or bicubic could be
                     used. See pyplot documentation for the full list of
                     possible values.
+    lognorm    : Boolean flag specifying wheter the colour scale should be
+                 logarithmic (default: linear). If you want to customise the
+                 limits, use the vmin and vmax flags which are passed to
+                 matplotlib
 '''
     if zslice is not None:
         zslice = float(zslice)
@@ -308,7 +313,7 @@ Optional arguments:
     command = Commands.RenderPlotCommand(x, y, render, snap, simno, overplot,
                                          autoscale, autoscalerender,
                                          coordlimits, zslice, xunit, yunit,
-                                         renderunit, res, interpolation,**kwargs)
+                                         renderunit, res, interpolation,lognorm,**kwargs)
     data = command.prepareData(Singletons.globallimits)
     Singletons.place_command([command, data])
     return data
@@ -769,7 +774,7 @@ Required argument:
         simno = int(sim)
     return simno
 
-def get_data(quantity, type="default",sim="current",snap="current",unit="default" ):
+def get_data(quantity, snap="current",type="default",sim="current",unit="default" ):
     '''Returns the array with the data for the given quantity.
     The data is returned scaled to the specified unit
     
@@ -884,6 +889,15 @@ def cleanup():
     import sys
     sys.exit()
 
+def ListFunctions():
+    '''List the available functions defined in facade'''
+    import gandalf_interpreter
+    toexcludefunctions=gandalf_interpreter.toexcludefunctions
+    functions = inspect.getmembers(facade, inspect.isfunction)
+    functions=filter(lambda function: function not in toexcludefunctions, functions)
+    print "The available functions in facade are: "
+    for function in functions:
+        print function.__name__
 
 #------------------------------------------------------------------------------
 def init():
