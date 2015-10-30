@@ -73,3 +73,6 @@ unittests:
 
 clean:
 	@+$(MAKE) clean -C src
+
+depends:
+	@+$(MAKE) depends -C src
