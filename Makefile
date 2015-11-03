@@ -20,7 +20,7 @@
 #==================================================================================================
 
 
-CPP                = g++ -g
+CPP                = mpic++ 
 PYTHON             = python
 COMPILER_MODE      = FAST
 PRECISION          = DOUBLE
