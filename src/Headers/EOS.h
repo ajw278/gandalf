@@ -313,4 +313,35 @@ class Radws : public EOS<ndim>
   FLOAT mu_bar;
 
 };
+
+//=================================================================================================
+//  Class LocIso
+/// \brief   Locally isothermal equation of state
+/// \details Locally isothermal equation of state
+/// \author  A.J. Winter
+/// \date    22/11/2015
+//=================================================================================================
+template <int ndim>
+class LocIso: public EOS<ndim>
+{
+  using EOS<ndim>::gamma;
+  using EOS<ndim>::gammam1;
+  using EOS<ndim>::gammaMinusOne;
+  using EOS<ndim>::oneMinusGamma;
+
+ public:
+
+  LocIso(FLOAT, FLOAT, FLOAT, SimUnits *);
+  ~LocIso();
+
+  FLOAT Pressure(Particle<ndim> &);
+  FLOAT EntropicFunction(Particle<ndim> &);
+  FLOAT SoundSpeed(Particle<ndim> &);
+  FLOAT Temperature(Particle<ndim> &);
+  FLOAT SpecificInternalEnergy(Particle<ndim> &);
+
+  const FLOAT temp0;
+  const FLOAT mu_bar;
+
+};
 #endif

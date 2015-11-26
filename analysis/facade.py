@@ -27,6 +27,7 @@ import defaults
 from multiprocessing import Manager, Queue, Event
 from plotting import PlottingProcess
 from gandalf.analysis.SimBuffer import SimBuffer, BufferException
+import os
 
 manager = Manager()
 
