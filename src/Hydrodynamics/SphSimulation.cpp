@@ -126,13 +126,14 @@ void SphSimulation<ndim>::ProcessParameters(void)
     simbox.boxhalf[k] = 0.5*simbox.boxsize[k];
   }
 
+  // Process all N-body parameters and set-up main N-body objects
+  this->ProcessNbodyParameters();
 
   // Set-up main SPH objects depending on which SPH algorithm we are using
   ProcessSphParameters();
   hydro = sph;
 
-  // Process all N-body parameters and set-up main N-body objects
-  this->ProcessNbodyParameters();
+
 
 
   // Set external potential field object and set pointers to object

@@ -258,6 +258,7 @@ void Parameters::SetDefaultValues(void)
   intparams["hydro_forces"] = 1;
   stringparams["gas_eos"] = "energy_eqn";
   stringparams["energy_integration"] = "null";
+  floatparams["templaw"] = 0.75;
   floatparams["energy_mult"] = 0.4;
   floatparams["gamma_eos"] = 1.66666666666666;
   floatparams["temp0"] = 1.0;

@@ -201,6 +201,9 @@ void GradhSphSimulation<ndim>::ProcessSphParameters(void)
       (floatparams["energy_mult"], stringparams["radws_table"],
        floatparams["temp_ambient"], &simunits, sph->eos);
   }
+  else if (stringparams["energy_integration"] == "lociso") {
+     uint = new LocalIsotherm<ndim,GradhSphParticle>(floatparams["temp0"], floatparams["gamma_eos"],floatparams["templaw"], floatparams["mu_bar"], &simunits, nbody);
+  }
   else if (stringparams["energy_integration"] == "null" ||
            stringparams["energy_integration"] == "none") {
     uint = new NullEnergy<ndim>(floatparams["energy_mult"]);

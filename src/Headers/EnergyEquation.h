@@ -111,7 +111,39 @@ class EnergyRadws : public EnergyEquation<ndim>
 
 };
 
-
+//=================================================================================================
+//  LocIsotherm
+/// Energy equation class for temperature distribution.
+//=================================================================================================
+template <int ndim, template <int> class ParticleType>
+class LocalIsotherm : public EnergyEquation<ndim>
+{
+ 
+ public:
+ 
+  using EnergyEquation<ndim>::timing;
+ 
+//NEED GAMMAM1
+  LocalIsotherm(FLOAT, FLOAT, FLOAT, FLOAT, SimUnits *, Nbody<ndim> *nbodydata);
+  virtual ~LocalIsotherm(){};
+    
+  void EnergyIntegration(const int, const int, const FLOAT, const FLOAT, Particle<ndim> *){};
+  void EnergyCorrectionTerms(const int, const int, const FLOAT, const FLOAT, Particle<ndim> *) {};
+  void EndTimestep(const int, const int, const FLOAT, const FLOAT, Particle<ndim> *);
+  DOUBLE Timestep(Particle<ndim> &) {return big_number_dp;}
+  FLOAT Radialu(const FLOAT*); 
+ 
+  //-----------------------------------------------------------------------------------------------
+ 
+ private:
+  FLOAT temp0;
+  FLOAT gammam1;
+  FLOAT templaw;
+  FLOAT mu_bar;
+ 
+  Nbody<ndim> *nbody;
+ 
+};
 
 //=================================================================================================
 //  NullEnergy
