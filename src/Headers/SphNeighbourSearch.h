@@ -189,7 +189,6 @@ protected:
 };
 
 
-
 //=================================================================================================
 //  Class GradhSphTree
 /// \brief   Class containing tree for computing grad-h SPH summation and force loops.
@@ -250,6 +249,104 @@ class GradhSphTree : public SphTree<ndim,ParticleType,TreeCell>
                               Nbody<ndim> *, DomainBox<ndim> &, Ewald<ndim> *);
 
 };
+
+//=================================================================================================
+//  Class ForcelessTree
+/// \brief   Class containing tree for computing grad-h SPH summation and force loops.
+/// \details Class containing tree for computing grad-h SPH summation and force loops.
+/// \author  D. A. Hubber
+/// \date    08/01/2014
+//=================================================================================================
+template <int ndim, template<int> class ParticleType, template<int> class TreeCell>
+class ForcelessTree : public SphTree<ndim,ParticleType,TreeCell>
+{
+ public:
+
+  using SphTree<ndim,ParticleType,TreeCell>::activelistbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::activepartbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::allocated_buffer;
+  using SphTree<ndim,ParticleType,TreeCell>::box;
+  using SphTree<ndim,ParticleType,TreeCell>::cellbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::gravity_mac;
+  using SphTree<ndim,ParticleType,TreeCell>::kernp;
+  using SphTree<ndim,ParticleType,TreeCell>::kernrange;
+  using SphTree<ndim,ParticleType,TreeCell>::kernrangesqd;
+  using SphTree<ndim,ParticleType,TreeCell>::levelneibbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::multipole;
+  using SphTree<ndim,ParticleType,TreeCell>::neibcheck;
+  using SphTree<ndim,ParticleType,TreeCell>::neibpartbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::Ngravcellmaxbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::Nleafmax;
+  using SphTree<ndim,ParticleType,TreeCell>::Nneibmaxbuf;
+  using SphTree<ndim,ParticleType,TreeCell>::Nthreads;
+  using SphTree<ndim,ParticleType,TreeCell>::Ntot;
+  using SphTree<ndim,ParticleType,TreeCell>::Ntotmax;
+  using SphTree<ndim,ParticleType,TreeCell>::Ntotmaxold;
+  using SphTree<ndim,ParticleType,TreeCell>::Ntotold;
+  using SphTree<ndim,ParticleType,TreeCell>::timing;
+  using SphTree<ndim,ParticleType,TreeCell>::tree;
+  using SphTree<ndim,ParticleType,TreeCell>::ghosttree;
+#ifdef MPI_PARALLEL
+  using SphTree<ndim,ParticleType,TreeCell>::mpighosttree;
+  using SphTree<ndim,ParticleType,TreeCell>::Nmpi;
+  using SphTree<ndim,ParticleType,TreeCell>::prunedtree;
+  using SphTree<ndim,ParticleType,TreeCell>::sendprunedtree;
+#endif
+
+
+  //-----------------------------------------------------------------------------------------------
+  ForcelessTree(int, int, int, int, FLOAT, FLOAT, FLOAT, string, string,
+               DomainBox<ndim> *, SmoothingKernel<ndim> *, CodeTiming *);
+  virtual ~ForcelessTree();
+
+  void RaiseError(void){
+	  ExceptionHandler::getIstance().raise("Error: update forces called in forceless simulation");
+  };
+
+  //-----------------------------------------------------------------------------------------------
+  void UpdateAllSphProperties(int, int, SphParticle<ndim> *, Sph<ndim> *, Nbody<ndim> *);
+  void UpdateAllSphForces(int, int, SphParticle<ndim> *, Sph<ndim> *,
+                            Nbody<ndim> *, DomainBox<ndim> &, Ewald<ndim> *);
+
+  void UpdateAllSphHydroForces(int, int, SphParticle<ndim> *, Sph<ndim> *,
+                                 Nbody<ndim> *, DomainBox<ndim> &){RaiseError();};
+  void UpdateAllSphGravForces(int, int, SphParticle<ndim> *, Sph<ndim> *,
+                                Nbody<ndim> *, DomainBox<ndim> &, Ewald<ndim> *){RaiseError();};
+
+  SphParticle<ndim> *part_gen;
+
+};
+
+
+//=================================================================================================
+//  Class ForcelessKDTree
+/// \brief   Grad-h SPH neighbour searching class using the KD-tree.
+/// \details Grad-h SPH neighbour searching class using the KD-tree.
+/// \author  D. A. Hubber
+/// \date    17/09/2014
+//=================================================================================================
+template <int ndim, template<int> class ParticleType, template<int> class TreeCell>
+class ForcelessKDTree: public ForcelessTree<ndim,ParticleType,TreeCell>
+{
+ public:
+
+  using SphTree<ndim,ParticleType,TreeCell>::tree;
+  using SphTree<ndim,ParticleType,TreeCell>::ghosttree;
+#ifdef MPI_PARALLEL
+  using SphTree<ndim,ParticleType,TreeCell>::mpighosttree;
+  using SphTree<ndim,ParticleType,TreeCell>::Nmpi;
+  using SphTree<ndim,ParticleType,TreeCell>::prunedtree;
+  using SphTree<ndim,ParticleType,TreeCell>::sendprunedtree;
+#endif
+
+
+  //-----------------------------------------------------------------------------------------------
+  ForcelessKDTree(int, int, int, int, FLOAT, FLOAT, FLOAT, string, string,
+                 DomainBox<ndim> *, SmoothingKernel<ndim> *, CodeTiming *,
+                 ParticleTypeRegister&);
+
+};
+
 
 //=================================================================================================
 //  Class SM2012SphTree

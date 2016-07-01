@@ -248,6 +248,100 @@ public:
 };
 
 
+//=================================================================================================
+//  Class Forceless
+/// \brief   Class definition for conservative 'forceless' SPH simulations.
+/// \details Class definition for conservative 'forceless' SPH simulations (as derived from the parent
+///          Sph class).  Full code for each of these class functions written in 'Forceless.cpp'.
+/// \author  D. A. Hubber, G. Rosotti
+/// \date    03/04/2013
+//=================================================================================================
+#if !defined(SWIG)
+template <int ndim, template<int> class kernelclass>
+class Forceless: public Sph<ndim>
+{
+public:
+  using Sph<ndim>::allocated;
+  using Sph<ndim>::Nhydro;
+  using Sph<ndim>::Ntot;
+  using Sph<ndim>::eos;
+  using Sph<ndim>::fixed_sink_mass;
+  using Sph<ndim>::hydrodata_unsafe;
+  using Sph<ndim>::h_fac;
+  using Sph<ndim>::kernp;
+  using Sph<ndim>::kernfac;
+  using Sph<ndim>::kernfacsqd;
+  using Sph<ndim>::invndim;
+  using Sph<ndim>::h_converge;
+  using Sph<ndim>::hydro_forces;
+  using Sph<ndim>::msink_fixed;
+  using Sph<ndim>::self_gravity;
+  using Sph<ndim>::avisc;
+  using Sph<ndim>::beta_visc;
+  using Sph<ndim>::alpha_visc;
+  using Sph<ndim>::alpha_visc_min;
+  using Sph<ndim>::acond;
+  using Sph<ndim>::create_sinks;
+  using Sph<ndim>::hmin_sink;
+  using Sph<ndim>::Nhydromax;
+  using Sph<ndim>::iorder;
+  using Sph<ndim>::sphdata_unsafe;
+
+ //public:
+  Forceless(int, int, FLOAT, FLOAT, FLOAT, FLOAT,
+           aviscenum, acondenum, tdaviscenum, string, string, SimUnits &, Parameters *);
+  virtual ~Forceless();
+
+  virtual Particle<ndim>* GetParticleArray() {return sphdata;};
+  virtual SphParticle<ndim>* GetSphParticleArray() {return sphdata;};
+
+  virtual void AllocateMemory(int);
+  virtual void DeallocateMemory(void);
+  virtual void DeleteDeadParticles(void);
+  virtual void ReorderParticles(void);
+
+  int ComputeH(const int, const int, const FLOAT, FLOAT *, FLOAT *, FLOAT *, FLOAT *,
+               SphParticle<ndim> &, Nbody<ndim> *);
+  void ComputeStarGravForces(const int, NbodyParticle<ndim> **, SphParticle<ndim> &);
+
+#if defined MPI_PARALLEL
+  virtual void FinishReturnExport ();
+#endif
+
+
+  void RaiseError(void){
+	  ExceptionHandler::getIstance().raise("Error: sph computation called in forceless simulation");
+  };
+
+  void ComputeThermalProperties(SphParticle<ndim> &);
+  void ComputeSphHydroForces(const int, const int, const int *, const FLOAT *,
+								   const FLOAT *, const FLOAT *, SphParticle<ndim> &,
+								   SphParticle<ndim> *) {RaiseError();
+  };
+  void ComputeSphHydroGravForces(const int, const int, int *, SphParticle<ndim> &,
+									   SphParticle<ndim> *) {RaiseError();
+  };
+  void ComputeSphGravForces(const int, const int, int *,
+								  SphParticle<ndim> &, SphParticle<ndim> *)  {RaiseError();
+  };
+  void ComputeDirectGravForces(const int, const int, int *, SphParticle<ndim> &,
+									 SphParticle<ndim> *)  {RaiseError();
+  };
+  void ComputeSphNeibDudt(const int, const int, int *, FLOAT *, FLOAT *, FLOAT *,
+								SphParticle<ndim> &, SphParticle<ndim> *)  {RaiseError();
+  };
+  void ComputeSphDerivatives(const int, const int, int *, FLOAT *, FLOAT *, FLOAT *,
+								   SphParticle<ndim> &, SphParticle<ndim> *) {RaiseError();
+  };
+  kernelclass<ndim> kern;                  ///< SPH kernel
+  GradhSphParticle<ndim> *sphdata;         ///< Pointer to particle data
+  Nbody<ndim> *nbody;					   ///< Pointer to nbody data
+
+  //static const DOUBLE tdyn_mult;    ///< Dynamical time factor
+};
+
+
+
 
 //=================================================================================================
 //  Class SM2012Sph
@@ -392,6 +486,8 @@ class NullSph: public Sph<ndim>
   SphParticle<ndim> *sphdata;           ///< Pointer to particle data
 
 };
+#endif
+
 #endif
 
 

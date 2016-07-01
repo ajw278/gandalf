@@ -39,7 +39,7 @@ PYFOLDER = ../analysis/swig_generated
 VPATH = $(PWD)/src:$(PWD)/src/Common:$(PWD)/src/GodunovSph:$(PWD)/src/GradhSph:$(PWD)/src/Headers
 VPATH +=$(PWD)/src/Hydrodynamics:$(PWD)/src/MeshlessFV:$(PWD)/src/Mpi:$(PWD)/src/Nbody
 VPATH +=$(PWD)/src/Radiation:$(PWD)/src/SM2013:$(PWD)/src/Thermal:$(PWD)/src/Tree
-VPATH +=$(PWD)/src/UnitTesting
+VPATH +=$(PWD)/src/UnitTesting:$(PWD)/src/Forceless
 INCLUDE = $(PWD)/src/Headers
 
 ifeq ($(strip $(CPP)),)
@@ -171,6 +171,7 @@ WRAP_OBJ = Simulation_wrap.o
 OBJ = Parameters.o SimUnits.o
 OBJ += Simulation.o Hydrodynamics.o
 OBJ += SphSimulation.o Sph.o
+OBJ += ForcelessSimulation.o Forceless.o
 OBJ += GradhSphSimulation.o GradhSph.o
 OBJ += SM2012SphSimulation.o SM2012Sph.o
 OBJ += MeshlessFVSimulation.o FV.o MeshlessFV.o MfvCommon.o
@@ -186,6 +187,7 @@ OBJ += HydroTree.o Tree.o KDTree.o OctTree.o BruteForceTree.o
 OBJ += MeshlessFVTree.o 
 OBJ += GradhSphTree.o
 OBJ += SM2012SphTree.o
+OBJ += ForcelessTree.o
 OBJ += Ewald.o
 OBJ += AdiabaticEOS.o IsothermalEOS.o BarotropicEOS.o Barotropic2EOS.o RadwsEOS.o
 OBJ += IonisingRadiationEOS.o MCRadiationEOS.o
@@ -264,6 +266,7 @@ Exception.o : Exception.cpp
 
 SphSimulation.o : SimulationIO.hpp SimulationIC.hpp SimAnalysis.hpp
 
+#ForcelessSimulation.o : SimulationIO.hpp SimulationIC.hpp SimAnalysis.hpp
 
 force: ;
 

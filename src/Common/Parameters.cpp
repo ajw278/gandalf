@@ -238,6 +238,7 @@ void Parameters::SetDefaultValues(void)
   //-----------------------------------------------------------------------------------------------
   floatparams["accel_mult"] = 0.3;
   floatparams["courant_mult"] = 0.15;
+  floatparams["tdyn_mult"]=0.01;
   floatparams["nbody_mult"] = 0.1;
   floatparams["subsys_mult"] = 0.05;
   intparams["Nlevels"] = 1;

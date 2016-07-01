@@ -30,7 +30,7 @@
 #include "Hydrodynamics.h"
 #include "Sinks.h"
 #include "SphIntegration.h"
- 
+
 using namespace std;
  
  
@@ -41,14 +41,12 @@ using namespace std;
 //=================================================================================================
 template <int ndim, template <int> class ParticleType>
 LocalIsotherm<ndim, ParticleType>::LocalIsotherm(FLOAT temp0aux, FLOAT gamma_aux, FLOAT templaw_aux, FLOAT mu_bar_aux, SimUnits *units, Nbody<ndim> *nbody_aux):
-//DON'T THINK I CAN DO THIS - NEED TO WORK OUT HOW TO GET GAMMA etc. 
   EnergyEquation<ndim>(1),
   gammam1(gamma_aux-1.0),
   templaw(templaw_aux),
   temp0(temp0aux/units->temp.outscale),
   mu_bar(mu_bar_aux),
   nbody(nbody_aux)
-//DO I NEED EOS? CAN GET GAMMA FROM HERE???
 {
 }
  
@@ -65,13 +63,12 @@ void LocalIsotherm<ndim,ParticleType>::EndTimestep
   Particle<ndim>* part_gen)            ///< [inout] Pointer to SPH particle array
 {
   int dn;                              // Integer time since beginning of step
-  int i;                               // Particle counter                        // ..
+  int i;                               // Particle counter                        // .
+
   //FLOAT dt_therm;                      // ..
   ParticleType<ndim>* partdata = static_cast<ParticleType<ndim>* > (part_gen);
  
-  //debug2("[LocalIsotherm::EndTimestep]");
-  timing->StartTimingSection("ENERGY_LOCALISOTHERM_END_TIMESTEP");
- 
+  timing->StartTimingSection("LOCAL_ISO");
  
   //-----------------------------------------------------------------------------------------------
 //NOT USING 'temp' AS A VARIABLE - WHAT DOES THIS MEAN FOR a) FUNCTIONALITY OF ENERGY INTEGRATION AND b) THE #pragma omp CALL (deleted temp from private for time being)
@@ -89,8 +86,7 @@ void LocalIsotherm<ndim,ParticleType>::EndTimestep
  
   }
   //-----------------------------------------------------------------------------------------------
- 
-  timing->EndTimingSection("ENERGY_LOCALISOTHERM_END_TIMESTEP");
+  timing->EndTimingSection("LOCAL_ISO");
  
   return;
 }

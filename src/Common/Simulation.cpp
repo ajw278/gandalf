@@ -72,7 +72,7 @@ SimulationBase* SimulationBase::SimulationFactory
   // Check simulation type is valid
   if (simtype != "sph" && simtype != "gradhsph" && simtype != "sm2012sph" &&
       simtype != "meshlessfv" && simtype != "mfvmuscl" && simtype != "mfvrk" &&
-      simtype != "nbody" ) {
+      simtype != "nbody"  && simtype != "forceless") {
     string msg = "Error: the simulation type " + simtype + " was not recognized";
     ExceptionHandler::getIstance().raise(msg);
   }
@@ -88,6 +88,9 @@ SimulationBase* SimulationBase::SimulationFactory
   if (ndim == 1) {
     if (simtype == "gradhsph" || simtype == "sph") {
       return new GradhSphSimulation<1>(params);
+    }
+    else if (simtype == "forceless" ) {
+      return new ForcelessSimulation<1>(params);
     }
     else if (simtype == "sm2012sph") {
       return new SM2012SphSimulation<1>(params);
@@ -106,6 +109,9 @@ SimulationBase* SimulationBase::SimulationFactory
     if (simtype == "gradhsph" || simtype == "sph") {
       return new GradhSphSimulation<2>(params);
     }
+    else if (simtype == "forceless" ) {
+      return new ForcelessSimulation<2>(params);
+    }
     else if (simtype == "sm2012sph") {
       return new SM2012SphSimulation<2>(params);
     }
@@ -122,6 +128,9 @@ SimulationBase* SimulationBase::SimulationFactory
   else if (ndim == 3) {
     if (simtype == "gradhsph" || simtype == "sph") {
       return new GradhSphSimulation<3>(params);
+    }
+    else if (simtype == "forceless" ) {
+      return new ForcelessSimulation<3>(params);
     }
     else if (simtype == "sm2012sph") {
       return new SM2012SphSimulation<3>(params);
@@ -492,6 +501,7 @@ string SimulationBase::Output(void)
     WriteSnapshotFile(filename,"slite");
 
   }
+
   //-----------------------------------------------------------------------------------------------
 
   // Output a data snapshot if reached required time
@@ -533,7 +543,6 @@ string SimulationBase::Output(void)
   }
   //-----------------------------------------------------------------------------------------------
 
-
   // Output diagnostics to screen if passed sufficient number of block steps
   if (Nblocksteps%ndiagstep == 0 && n == nresync) {
     CalculateDiagnostics();
@@ -548,7 +557,6 @@ string SimulationBase::Output(void)
     RestartSnapshot();
     nlastrestart = Nsteps;
   }
-
 
   timing->EndTimingSection("OUTPUT");
 
@@ -611,6 +619,7 @@ void SimulationBase::SetupSimulation(void)
                    "import the initial conditions";
       ExceptionHandler::getIstance().raise(msg);
     }
+
   }
   else {
     if (ParametersProcessed) {
@@ -618,8 +627,11 @@ void SimulationBase::SetupSimulation(void)
                    "you shouldn't be calling this function, please consult the documentation.";
       ExceptionHandler::getIstance().raise(msg);
     }
+
     ProcessParameters();
+
   }
+
 
   // Generate initial conditions for simulation on root process (for MPI jobs)
   if (rank == 0) {
@@ -628,6 +640,7 @@ void SimulationBase::SetupSimulation(void)
 
   // Change to COM frame if selected
   if (simparams->intparams["com_frame"] == 1) SetComFrame();
+
 
   // Perform the rest of the initialisation, calculating all initial particle
   // quantities and setting up trees.

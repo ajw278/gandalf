@@ -203,6 +203,7 @@ class SimulationBase
   DOUBLE tlitesnapnext;                ///< Time of next lite-snapshot
   DOUBLE tsnapnext;                    ///< Time of next snapshot
   DOUBLE tsnap_wallclock;              ///< Wallclock time of last snapshot
+  DOUBLE tdyn_mult;					   ///< Dynamical time multiplier
   string out_file_form;                ///< Output snapshot file format
   string paramfile;                    ///< Name of parameters file
   string run_id;                       ///< Simulation id string
@@ -299,6 +300,7 @@ class Simulation : public SimulationBase
   Sinks<ndim> *sinks;                  ///< Sink particle object
   SphIntegration<ndim> *sphint;        ///< SPH Integration scheme pointer
   SphNeighbourSearch<ndim> *sphneib;   ///< SPH Neighbour scheme pointer
+
 #ifdef MPI_PARALLEL
   MpiControl<ndim>* mpicontrol;        ///< MPI control object
   Ghosts<ndim>* MpiGhosts;             ///< MPI ghost particle object
@@ -413,6 +415,114 @@ class SphSimulation : public Simulation<ndim>
   Sph<ndim> *sph;                      ///< SPH algorithm pointer
   DustBase<ndim>* sphdust ;               ///< Dust algorithm pointer
 };
+
+
+//=================================================================================================
+//  Class ForcelessSimulation
+/// \brief   Main ForcelessSimulation class.
+/// \details Main ForcelessSimulation class definition, inherited from Simulation,
+///          which controls the main program flow for ForcelessSimulation simulations.
+/// \author  A.J. Winter
+/// \date    27/06/2016
+//=================================================================================================
+template <int ndim>
+class ForcelessSimulation : public Simulation<ndim>
+{
+ public:
+  using Simulation<ndim>::ewaldGravity;
+  using Simulation<ndim>::extra_sink_output;
+  using Simulation<ndim>::periodicBoundaries;
+  using Simulation<ndim>::Nmpi;
+  using Simulation<ndim>::pruning_level_min;
+  using Simulation<ndim>::pruning_level_max;
+  using Simulation<ndim>::restart;
+  using Simulation<ndim>::simparams;
+  using Simulation<ndim>::timing;
+  using Simulation<ndim>::extpot;
+  using Simulation<ndim>::ewald;
+  using Simulation<ndim>::kill_simulation;
+  using Simulation<ndim>::hydro;
+  using Simulation<ndim>::nbody;
+  using Simulation<ndim>::sinks;
+  using Simulation<ndim>::subsystem;
+  using Simulation<ndim>::nbodytree;
+  using Simulation<ndim>::sphint;
+  using Simulation<ndim>::uint;
+  using Simulation<ndim>::litesnap;
+  using Simulation<ndim>::LocalGhosts;
+  using Simulation<ndim>::simbox;
+  using Simulation<ndim>::simunits;
+  using Simulation<ndim>::Nstepsmax;
+  using Simulation<ndim>::run_id;
+  using Simulation<ndim>::out_file_form;
+  using Simulation<ndim>::tend;
+  using Simulation<ndim>::noutputstep;
+  using Simulation<ndim>::nbody_single_timestep;
+  using Simulation<ndim>::ParametersProcessed;
+  using Simulation<ndim>::n;
+  using Simulation<ndim>::Nblocksteps;
+  using Simulation<ndim>::Nfullsteps;
+  using Simulation<ndim>::Nlevels;
+  using Simulation<ndim>::Nsteps;
+  using Simulation<ndim>::t;
+  using Simulation<ndim>::timestep;
+  using Simulation<ndim>::level_step;
+  using Simulation<ndim>::Noutsnap;
+  using Simulation<ndim>::tlitesnapnext;
+  using Simulation<ndim>::tsnapnext;
+  using Simulation<ndim>::dt_litesnap;
+  using Simulation<ndim>::dt_min_nbody;
+  using Simulation<ndim>::dt_min_hydro;
+  using Simulation<ndim>::dt_snap;
+  using Simulation<ndim>::dt_python;
+  using Simulation<ndim>::level_diff_max;
+  using Simulation<ndim>::level_max;
+  using Simulation<ndim>::integration_step;
+  using Simulation<ndim>::nresync;
+  using Simulation<ndim>::dt_max;
+  using Simulation<ndim>::sph_single_timestep;
+  using Simulation<ndim>::sink_particles;
+  using Simulation<ndim>::randnumb;
+  using Simulation<ndim>::rank;
+  using Simulation<ndim>::rebuild_tree;
+  using Simulation<ndim>::recomputeRadiation;
+  using Simulation<ndim>::ndiagstep;
+  using Simulation<ndim>::nradstep;
+  using Simulation<ndim>::nrestartstep;
+  using Simulation<ndim>::ntreebuildstep;
+  using Simulation<ndim>::tdyn_mult;
+  using Simulation<ndim>::ntreestockstep;
+  using Simulation<ndim>::tmax_wallclock;
+  using Simulation<ndim>::sphneib;
+  using Simulation<ndim>::radiation;
+
+#ifdef MPI_PARALLEL
+  using Simulation<ndim>::mpicontrol;
+  using Simulation<ndim>::MpiGhosts;
+#endif
+
+  ForcelessSimulation (Parameters* parameters)
+  : Simulation<ndim>(parameters), sph(NULL)  //, sphdust(NULL)
+  {};
+  virtual ~ForcelessSimulation() {} ;
+
+  virtual void PostInitialConditionsSetup(void);
+  virtual void MainLoop(void);
+  virtual void ComputeGlobalTimestep(void);
+  virtual void ComputeBlockTimesteps(void);
+  virtual void ProcessParameters(void);
+  virtual void WriteExtraSinkOutput(void);
+  virtual void RegulariseParticleDistribution(const int);
+  virtual void SmoothParticleQuantity(const int, FLOAT *);
+  virtual void ProcessSphParameters(void);
+
+  DOUBLE Timestep(const FLOAT, SphParticle<ndim> &);
+
+  Sph<ndim> *sph;                      ///< SPH algorithm pointer
+  //DustBase<ndim>* sphdust ;               ///< Dust algorithm pointer
+  GradhSphParticle<ndim> *sphdata;         ///< Pointer to particle data
+};
+
 
 
 
