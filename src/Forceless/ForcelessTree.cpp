@@ -50,12 +50,40 @@ template <int ndim, template<int> class ParticleType, template<int> class TreeCe
 ForcelessTree<ndim,ParticleType,TreeCell>::ForcelessTree
  (int _Nleafmax, int _Nmpi, int _pruning_level_min, int _pruning_level_max, FLOAT _thetamaxsqd,
   FLOAT _kernrange, FLOAT _macerror, string _gravity_mac, string _multipole,
-  DomainBox<ndim>* _box, SmoothingKernel<ndim>* _kern, CodeTiming* _timing):
+  DomainBox<ndim>* _box, SmoothingKernel<ndim>* _kern, CodeTiming* _timing,ParticleTypeRegister& types):
  NeighbourSearch<ndim>(_kernrange, _box, _kern, _timing),
  SphTree<ndim,ParticleType,TreeCell>
   (_Nleafmax, _Nmpi, _pruning_level_min, _pruning_level_max, _thetamaxsqd,
    _kernrange, _macerror, _gravity_mac, _multipole, _box, _kern, _timing)
 {
+ // Set-up main tree object
+  tree = new_tree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
+		  	  	  	  	  	  	  	  	  	  _macerror, _gravity_mac, _multipole, *_box, types);
+
+  // Set-up ghost-particle tree object
+  ghosttree = new_tree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
+	  	  	  	  	  _macerror, _gravity_mac, _multipole, *_box, types);
+
+#ifdef MPI_PARALLEL
+  // Set-up ghost-particle tree object
+  mpighosttree = new_tree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
+	  	  	  _macerror, _gravity_mac, _multipole, *_box, types);
+
+  // Set-up multiple pruned trees, one for each MPI process
+  prunedtree = new Tree<ndim,ParticleType,TreeCell>*[Nmpi] ;
+		 // new_tree_array<ndim,ParticleType,TreeCell>(Nmpi);
+  sendprunedtree =  new Tree<ndim,ParticleType,TreeCell>*[Nmpi] ;
+		  //new_tree_array<ndim,ParticleType,TreeCell>(Nmpi);
+
+  for (int i=0; i<Nmpi; i++) {
+    prunedtree[i] = new_tree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
+	  	  	  	  	  	  	  	  	  	  	  	  	  	 _macerror, _gravity_mac, _multipole, *_box, types);
+  }
+  for (int i=0; i<Nmpi; i++) {
+    sendprunedtree[i] = new_tree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
+    														 _macerror, _gravity_mac, _multipole, *_box, types);
+  }
+#endif
 }
 
 
@@ -71,52 +99,6 @@ ForcelessTree<ndim,ParticleType,TreeCell>::~ForcelessTree()
     this->DeallocateMemory();
     tree->DeallocateTreeMemory();
   }
-}
-
-
-
-//=================================================================================================
-//  ForcelessKDTree::ForcelessKDTree
-/// ForcelessKDTree constructor.  Initialises various variables and creates tree objects.
-//=================================================================================================
-template <int ndim, template<int> class ParticleType, template<int> class TreeCell>
-ForcelessKDTree<ndim,ParticleType,TreeCell>::ForcelessKDTree
- (int _Nleafmax, int _Nmpi, int _pruning_level_min, int _pruning_level_max, FLOAT _thetamaxsqd,
-  FLOAT _kernrange, FLOAT _macerror, string _gravity_mac, string _multipole,
-  DomainBox<ndim>* _box, SmoothingKernel<ndim>* _kern, CodeTiming* _timing, ParticleTypeRegister& types):
- NeighbourSearch<ndim>(_kernrange, _box, _kern, _timing),
- ForcelessTree<ndim,ParticleType,TreeCell>
-  (_Nleafmax, _Nmpi, _pruning_level_min, _pruning_level_max, _thetamaxsqd,
-   _kernrange, _macerror, _gravity_mac, _multipole, _box, _kern, _timing)
-{
-  // Set-up main tree object
-  tree = new KDTree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
-                                                _macerror, _gravity_mac, _multipole, *_box, types);
-
-  // Set-up ghost-particle tree object
-  ghosttree = new KDTree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
-                                                     _macerror, _gravity_mac, _multipole, *_box, types);
-
-#ifdef MPI_PARALLEL
-  // Set-up ghost-particle tree object
-  mpighosttree = new KDTree<ndim,ParticleType,TreeCell>(_Nleafmax, _thetamaxsqd, _kernrange,
-                                                        _macerror, _gravity_mac, _multipole, *_box, types);
-
-  // Set-up multiple pruned trees, one for each MPI process
-  KDTree<ndim,ParticleType,TreeCell>** prunedtree_derived = new KDTree<ndim,ParticleType,TreeCell>*[Nmpi];
-  prunedtree = (Tree<ndim,ParticleType,TreeCell> **) prunedtree_derived;
-  KDTree<ndim,ParticleType,TreeCell>** sendprunedtree_derived = new KDTree<ndim,ParticleType,TreeCell>*[Nmpi];
-  sendprunedtree = (Tree<ndim,ParticleType,TreeCell> **) sendprunedtree_derived;
-
-  for (int i=0; i<Nmpi; i++) {
-    prunedtree[i] = new KDTree<ndim,ParticleType,TreeCell>
-     (_Nleafmax, _thetamaxsqd, _kernrange, _macerror, _gravity_mac, _multipole, *_box, types);
-  }
-  for (int i=0; i<Nmpi; i++) {
-    sendprunedtree[i] = new KDTree<ndim,ParticleType,TreeCell>
-     (_Nleafmax, _thetamaxsqd, _kernrange, _macerror, _gravity_mac, _multipole, *_box, types);
-  }
-#endif
 }
 
 
@@ -466,6 +448,17 @@ template class ForcelessTree<1,GradhSphParticle,KDTreeCell>;
 template class ForcelessTree<2,GradhSphParticle,KDTreeCell>;
 template class ForcelessTree<3,GradhSphParticle,KDTreeCell>;
 
-template class ForcelessKDTree<1,GradhSphParticle,KDTreeCell>;
-template class ForcelessKDTree<2,GradhSphParticle,KDTreeCell>;
-template class ForcelessKDTree<3,GradhSphParticle,KDTreeCell>;
+template class ForcelessTree<1,GradhSphParticle,OctTreeCell>;
+template class ForcelessTree<2,GradhSphParticle,OctTreeCell>;
+template class ForcelessTree<3,GradhSphParticle,OctTreeCell>;
+
+template class ForcelessTree<1,GradhSphParticle,TreeRayCell>;
+template class ForcelessTree<2,GradhSphParticle,TreeRayCell>;
+template class ForcelessTree<3,GradhSphParticle,TreeRayCell>;
+
+template class ForcelessTree<1,GradhSphParticle,BruteForceTreeCell>;
+template class ForcelessTree<2,GradhSphParticle,BruteForceTreeCell>;
+template class ForcelessTree<3,GradhSphParticle,BruteForceTreeCell>;
+
+
+

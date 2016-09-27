@@ -296,7 +296,7 @@ class ForcelessTree : public SphTree<ndim,ParticleType,TreeCell>
 
   //-----------------------------------------------------------------------------------------------
   ForcelessTree(int, int, int, int, FLOAT, FLOAT, FLOAT, string, string,
-               DomainBox<ndim> *, SmoothingKernel<ndim> *, CodeTiming *);
+               DomainBox<ndim> *, SmoothingKernel<ndim> *, CodeTiming *, ParticleTypeRegister&);
   virtual ~ForcelessTree();
 
   void RaiseError(void){
@@ -314,36 +314,6 @@ class ForcelessTree : public SphTree<ndim,ParticleType,TreeCell>
                                 Nbody<ndim> *, DomainBox<ndim> &, Ewald<ndim> *){RaiseError();};
 
   SphParticle<ndim> *part_gen;
-
-};
-
-
-//=================================================================================================
-//  Class ForcelessKDTree
-/// \brief   Grad-h SPH neighbour searching class using the KD-tree.
-/// \details Grad-h SPH neighbour searching class using the KD-tree.
-/// \author  D. A. Hubber
-/// \date    17/09/2014
-//=================================================================================================
-template <int ndim, template<int> class ParticleType, template<int> class TreeCell>
-class ForcelessKDTree: public ForcelessTree<ndim,ParticleType,TreeCell>
-{
- public:
-
-  using SphTree<ndim,ParticleType,TreeCell>::tree;
-  using SphTree<ndim,ParticleType,TreeCell>::ghosttree;
-#ifdef MPI_PARALLEL
-  using SphTree<ndim,ParticleType,TreeCell>::mpighosttree;
-  using SphTree<ndim,ParticleType,TreeCell>::Nmpi;
-  using SphTree<ndim,ParticleType,TreeCell>::prunedtree;
-  using SphTree<ndim,ParticleType,TreeCell>::sendprunedtree;
-#endif
-
-
-  //-----------------------------------------------------------------------------------------------
-  ForcelessKDTree(int, int, int, int, FLOAT, FLOAT, FLOAT, string, string,
-                 DomainBox<ndim> *, SmoothingKernel<ndim> *, CodeTiming *,
-                 ParticleTypeRegister&);
 
 };
 
